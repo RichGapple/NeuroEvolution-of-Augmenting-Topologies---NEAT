@@ -16,21 +16,25 @@ rather than silently confirmatory.
 
 | item | value |
 |---|---|
-| config hash (from `04_run_sweep.py` startup line) | |
+| config hash (from `04_run_sweep.py` startup line) | TO BE RECORDED AT SWEEP START |
 | sparsity mode | `quantized` |
-| η grid | 0, 0.125, …, 1.0 |
-| seeds per condition | (from `03_pilot.py`, not assumed) |
-| generations | |
-| population size | |
-| date frozen | |
+| η grid | 0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0 |
+| seeds per condition | 30 |
+| generations | 100 |
+| population size | 100 |
+| date frozen | 2026-09-02 |
 
-Config hash: 939192a95e0e
+Config hash: **TO BE RECORDED FROM `04_run_sweep.py`**
+
 Generations: 100
+
 Population: 100
+
 max_steps: 200
 
-Calibration (`00_calibrate.py`) passed on: ____________
-Dense-endpoint solve rate at calibration: ______
+Calibration (`00_calibrate.py`) passed on: **2026-09-02**
+
+Dense-endpoint solve rate at calibration: **67%**
 
 ---
 
@@ -42,13 +46,18 @@ exploratory and must be described as such.
 | hypothesis | primary metric | direction predicted | why this one |
 |---|---|---|---|
 | H1 selection | `mean_selection_differential` | decreases with η | realised selection pressure; the quantity that actually enters the causal chain, unlike distinct-value counts which are partly a property of the quantiser |
-| H2 innovation | `mean_tir` | (state a direction or "no directional prediction") | retention of new structure, not merely its introduction |
-| H3 complexity | `final_mean_connections` | | connections change before node counts do under NEAT's complexification |
-| H4 functionality | `functional_conn_fraction` | | |
-| H5 nonlinearity | ΔAIC on the H3 primary | piecewise preferred if ΔAIC > 2 | |
+| H2 innovation | `mean_tir` | no directional prediction | retention of new structure, not merely its introduction |
+| H3 complexity | `final_mean_connections` | decreases with η | connections provide a direct measure of evolved structural complexity and may change before node counts under NEAT-style complexification |
+| H4 functionality | `functional_conn_fraction` | decreases with η | measures the fraction of evolved connections that are functionally contributing, distinguishing useful structure from raw structural growth |
+| H5 nonlinearity | ΔAIC comparing piecewise vs linear models for `final_mean_connections` | piecewise preferred if ΔAIC > 2 | tests whether the sparsity–complexity relationship is better represented by a change-point/piecewise relationship than by a single linear trend |
 
 Secondary metrics (reported with effect sizes, not used for confirmatory
-claims): _______________________________________________
+claims): true best fitness, success rate, `gen_first_solution`,
+distinct fitness values per generation, fitness coefficient of variation,
+total structural mutation events, total novel innovations, final mean nodes,
+final mean network density, final mean network depth, champion nodes,
+champion connections, mean species count, mean genomic diversity,
+final genomic diversity, and trajectory/path measures.
 
 ---
 
