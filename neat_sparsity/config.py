@@ -226,9 +226,9 @@ class ExperimentConfig:
 def pilot_config() -> ExperimentConfig:
     """Small + fast: used to measure runtime and between-seed variance."""
     cfg = ExperimentConfig(name="pilot")
-    cfg.generations = 40
-    cfg.neat.pop_size = 60
-    cfg.env.max_steps = 200
+    cfg.generations = 100
+    cfg.neat.pop_size = 100
+    cfg.env.max_steps = 150
     cfg.etas = [0.0, 0.5, 1.0]
     cfg.seeds = list(range(1000, 1006))
     return cfg
@@ -237,8 +237,8 @@ def pilot_config() -> ExperimentConfig:
 def core_config() -> ExperimentConfig:
     """The main sweep described in the roadmap (Stage 4)."""
     cfg = ExperimentConfig(name="core_sweep")
-    cfg.generations = 120
-    cfg.neat.pop_size = 120
+    cfg.generations = 100
+    cfg.neat.pop_size = 100
     cfg.etas = [0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1.0]
     cfg.seeds = list(range(1000, 1030))     # 30 independent seeds per condition
     return cfg
