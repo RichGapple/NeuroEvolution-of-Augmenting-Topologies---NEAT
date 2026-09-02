@@ -24,6 +24,11 @@ rather than silently confirmatory.
 | population size | |
 | date frozen | |
 
+Config hash: 939192a95e0e
+Generations: 100
+Population: 100
+max_steps: 200
+
 Calibration (`00_calibrate.py`) passed on: ____________
 Dense-endpoint solve rate at calibration: ______
 
