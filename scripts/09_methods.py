@@ -220,7 +220,7 @@ than as evidence of no effect.
     andir = os.path.join(args.out, "analysis")
     os.makedirs(andir, exist_ok=True)
     path = os.path.join(andir, "methods.md")
-    with open(path, "w") as fh:
+    with open(path, "w", encoding="utf-8") as fh:
         fh.write(md)
     print(f"wrote {path}  ({len(md.split())} words)")
     print("\nCheck the numbers against your intent, then paste into Section 3.")
