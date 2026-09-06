@@ -50,6 +50,10 @@ class Population:
         self._prev_new_innovations: Set[int] = set()
         self._structural_events = 0
 
+        # selection-tie instrumentation (measurement only)
+        self.arbitrary_selection_fraction = 0.0
+        self.cut_ambiguous_species_fraction = 0.0
+
     # -- helpers -------------------------------------------------------------- #
     def _key(self) -> int:
         k = self._next_genome_key
@@ -174,6 +178,11 @@ class Population:
         pop_mean = sum(g.fitness for g in self.genomes) / len(self.genomes)
         parent_fitnesses: List[float] = []
 
+        # selection-tie instrumentation (measurement only)
+        n_arbitrary = 0
+        n_ambiguous_species = 0
+        n_species_considered = 0
+
         self.tracker.advance_generation()
         self._structural_events = 0
         new_genomes: List[Genome] = []
@@ -182,6 +191,20 @@ class Population:
             members = sorted(s.members, key=lambda g: (-g.fitness, g.key))
             n_survivors = max(1, int(round(len(members) * cfg.survival_threshold)))
             pool = members[:n_survivors]
+
+            # -- measurement only; does not affect reproduction --------------- #
+            # Truncation selection reads ranks, not magnitudes. It only becomes
+            # arbitrary when the cut falls strictly inside a tied group: then
+            # who survives is decided by genome key, not by fitness. Count how
+            # many individuals had their fate decided that way.
+            n_species_considered += 1
+            if 0 < n_survivors < len(members):
+                boundary = members[n_survivors - 1].fitness
+                if members[n_survivors].fitness == boundary:
+                    tied = [m for m in members if m.fitness == boundary]
+                    n_arbitrary += len(tied)
+                    n_ambiguous_species += 1
+            # ------------------------------------------------------------------ #
 
             n = s.offspring
             # elitism
@@ -223,6 +246,12 @@ class Population:
 
         self.genomes = new_genomes
         self.generation += 1
+
+        # Exposed for the generation record. See scripts/patch_population_ties.py
+        # for what these mean and why they are the paper's mechanism test.
+        self.arbitrary_selection_fraction = n_arbitrary / max(1, cfg.pop_size)
+        self.cut_ambiguous_species_fraction = (
+            n_ambiguous_species / max(1, n_species_considered))
 
         if parent_fitnesses:
             return sum(parent_fitnesses) / len(parent_fitnesses) - pop_mean
@@ -280,6 +309,9 @@ def run_evolution(
             selection_differential=selection_differential,
             reached_goal_count=n_reached,
         )
+        # mechanism metrics from the previous generation's reproduction step
+        rec["arbitrary_selection_fraction"] = pop.arbitrary_selection_fraction
+        rec["cut_ambiguous_species_fraction"] = pop.cut_ambiguous_species_fraction
         records.append(rec)
         if on_generation is not None:
             on_generation(gen, rec)
