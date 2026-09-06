@@ -19,11 +19,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from neat_sparsity.config import core_config, ExperimentConfig
 from neat_sparsity.runner import run_sweep
-
+from dqn_sparsity import mazes
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    
     ap.add_argument("--out", default="results/core_sweep")
+    ap.add_argument("--maze", choices=["A", "B"], default=None)
     ap.add_argument("--workers", type=int, default=1)
     ap.add_argument("--seeds", type=int, default=30, help="seeds per condition")
     ap.add_argument("--seed-start", type=int, default=1000)
@@ -46,6 +48,8 @@ def main() -> None:
     if args.mode:
         cfg.sparsity.mode = args.mode
         cfg.name = f"sweep_{args.mode}"
+    if args.maze:
+        cfg.env = mazes.apply_maze(cfg.env, args.maze)
 
     n = len(cfg.etas) * len(cfg.seeds)
     print(f"sweep: {len(cfg.etas)} conditions x {len(cfg.seeds)} seeds = {n} runs")
@@ -71,7 +75,7 @@ def main() -> None:
             if not cfg.seeds:
                 print("nothing to do")
                 return
-
+    
     run_sweep(cfg, args.out, workers=args.workers)
     print(f"\ndone -> {args.out}/summary.csv")
     print("next:  python scripts/05_ablation.py --out", args.out)
