@@ -1,0 +1,67 @@
+# DQN arm of the reward-sparsity study.
+# Usage: make -f Makefile.dqn all
+#
+# Targets run in dependency order and STOP on the first failure, so a broken
+# conformance check cannot silently produce a sweep.
+
+PY      ?= python3
+WORKERS ?= 8
+SEEDS   ?= 30
+NEAT    ?= results/sweep
+DQN     ?= results/dqn_sweep
+CMP     ?= results/comparison
+MODE    ?= quantized
+
+.PHONY: all check test calibrate pilot sweep analyze crossover cost \
+        ablation clean help
+
+help:
+	@echo "make -f Makefile.dqn <target>   [WORKERS=8 SEEDS=30 MODE=quantized]"
+	@echo ""
+	@echo "  check      conformance + return equivalence  (gate)"
+	@echo "  test       unit + integration tests          (gate)"
+	@echo "  calibrate  does DQN work on this task at all?"
+	@echo "  pilot      runtime + variance -> seed count"
+	@echo "  sweep      the main run"
+	@echo "  analyze    stats, figures, report.md"
+	@echo "  crossover  NEAT vs DQN  <- the headline"
+	@echo "  cost       honest compute accounting"
+	@echo "  ablation   --shaping terminal comparison sweep"
+	@echo "  all        check test calibrate sweep analyze crossover cost"
+
+all: check test calibrate sweep analyze crossover cost
+
+check:
+	$(PY) scripts/10_dqn_check.py
+
+test:
+	$(PY) tests/test_dqn.py
+
+calibrate: check
+	$(PY) scripts/11_dqn_calibrate.py --seeds 8 --workers $(WORKERS)
+
+pilot: check
+	$(PY) scripts/12_dqn_pilot.py --seeds 6 --budget 200000
+
+sweep: check
+	$(PY) scripts/13_dqn_sweep.py --outdir $(DQN) --workers $(WORKERS) \
+	      --seeds $(SEEDS) --mode $(MODE) --match-neat $(NEAT)
+
+analyze:
+	$(PY) scripts/14_dqn_analyze.py --outdir $(DQN)
+
+crossover:
+	$(PY) scripts/15_crossover.py --neat $(NEAT) --dqn $(DQN) --outdir $(CMP)
+
+cost:
+	$(PY) scripts/16_cost_report.py --neat $(NEAT) --dqn $(DQN) --outdir $(CMP)
+
+ablation: check
+	$(PY) scripts/13_dqn_sweep.py --outdir results/dqn_terminal \
+	      --workers $(WORKERS) --seeds $(SEEDS) --shaping terminal \
+	      --match-neat $(NEAT)
+	$(PY) scripts/14_dqn_analyze.py --outdir results/dqn_terminal
+
+clean:
+	rm -rf results/dqn_sweep results/dqn_terminal results/comparison \
+	       results/dqn_calibration results/dqn_pilot

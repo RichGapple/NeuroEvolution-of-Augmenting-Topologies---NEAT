@@ -1,0 +1,8 @@
+# The DQN arm adds NO dependencies beyond what neat_sparsity already needs.
+# The learner is a hand-written numpy MLP with Adam; see dqn_sparsity/nets.py
+# for why, and tests/test_dqn.py for the finite-difference gradient check that
+# guards it.
+numpy>=1.24
+scipy>=1.10
+pandas>=2.0
+matplotlib>=3.7
